@@ -1,0 +1,4 @@
+name: ARMOYUPlugin
+version: '${project.version}'
+main: com.armoyu.minecraftplugin
+api-version: 1.21
