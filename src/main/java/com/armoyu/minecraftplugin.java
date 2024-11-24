@@ -7,28 +7,27 @@ import org.bukkit.plugin.java.JavaPlugin;
 public final class minecraftplugin extends JavaPlugin {
 
 
-   static String ARMOYUTag = "§b[ARMOYU] ";
-    static  String ARMOYUTagColor = "§e";
+    static String ARMOYUTag = "§b[ARMOYU] ";
+    static String ARMOYUTagColor = "§e";
 
 
-    static void consoleSendMessage(String message, Color colorType){
+    static void consoleSendMessage(String message, Color colorType) {
         String selectedColor = "§2";
-        if(colorType.equals(Color.GREEN)){
+        if (colorType.equals(Color.GREEN)) {
             selectedColor = "§a";
-        }else if(colorType.equals(Color.RED)){
+        } else if (colorType.equals(Color.RED)) {
             selectedColor = "§c";
-        }else if(colorType.equals(Color.YELLOW)){
+        } else if (colorType.equals(Color.YELLOW)) {
             selectedColor = "§e";
-        }
-        else if(colorType.equals(Color.PURPLE)){
+        } else if (colorType.equals(Color.PURPLE)) {
             selectedColor = "§d";
         }
 
-        Bukkit.getConsoleSender().sendMessage(ARMOYUTag +selectedColor+message);
+        Bukkit.getConsoleSender().sendMessage(ARMOYUTag + selectedColor + message);
     }
 
     static void consoleSendMessage(String message) {
-        Bukkit.getConsoleSender().sendMessage(ARMOYUTag +ARMOYUTagColor+message);
+        Bukkit.getConsoleSender().sendMessage(ARMOYUTag + ARMOYUTagColor + message);
     }
 
     @Override
@@ -36,8 +35,8 @@ public final class minecraftplugin extends JavaPlugin {
         // Plugin startup logic
 
         consoleSendMessage("PLugin etkinlestirildi!!");
-        consoleSendMessage("Yesil Renk",Color.GREEN);
-        consoleSendMessage("Kirmizi Renk",Color.RED);
+        consoleSendMessage("Yesil Renk", Color.GREEN);
+        consoleSendMessage("Kirmizi Renk", Color.RED);
 
 
         getServer().getPluginManager().registerEvents(new listener(), this);
@@ -47,6 +46,7 @@ public final class minecraftplugin extends JavaPlugin {
     @Override
     public void onDisable() {
         // Plugin shutdown logic
+
         consoleSendMessage("Plugin Kapatıldı!");
 
     }
