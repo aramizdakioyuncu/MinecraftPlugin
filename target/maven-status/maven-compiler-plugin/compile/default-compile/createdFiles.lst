@@ -1,2 +1,7 @@
+com\armoyu\minecraftplugin$1.class
+com\armoyu\plugins\teleport\listener\teleport.class
+com\armoyu\utils\authplayer.class
 com\armoyu\listener.class
+com\armoyu\plugins\sleeppingbed\listener\sleepingbed.class
 com\armoyu\minecraftplugin.class
+com\armoyu\plugins\teleport\listener\teleport$MyCommandExecutor.class

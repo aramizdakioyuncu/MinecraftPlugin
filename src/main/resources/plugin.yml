@@ -2,3 +2,13 @@ name: ARMOYUPlugin
 version: '${project.version}'
 main: com.armoyu.minecraftplugin
 api-version: 1.21
+commands:
+  tpa:
+    description: Bir oyuncuya teleportlanma isteği göndermeye yarar.
+    usage: /tpa Player
+  tpaccept:
+    description: tp isteği kabul edilmesi
+    usage: /tpaccept
+  tpdeny:
+    description: tp isteği reddilmesi
+    usage: /tpdeny

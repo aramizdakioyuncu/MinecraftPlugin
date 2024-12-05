@@ -1,5 +1,7 @@
 package com.armoyu;
 
+import com.armoyu.plugins.sleeppingbed.listener.sleepingbed;
+import com.armoyu.plugins.teleport.listener.teleport;
 import net.md_5.bungee.api.ChatMessageType;
 import net.md_5.bungee.api.chat.TextComponent;
 import org.bukkit.Bukkit;
@@ -9,22 +11,25 @@ import org.bukkit.entity.Player;
 import org.bukkit.plugin.java.JavaPlugin;
 import org.bukkit.scheduler.BukkitRunnable;
 
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Set;
 
 public final class minecraftplugin extends JavaPlugin {
 
 
-    static String ARMOYUTag = "§b[ARMOYU] ";
-    static String ARMOYUTagColor = "§e";
+    public static String ARMOYUTag = "§b[ARMOYU] ";
+    public static String ARMOYUTagColor = "§e";
 
 
     //LİSTELER
-    static final Set<Player> playersInBed = new HashSet<>();
+    public static final Set<Player> playersInBed = new HashSet<>();
+    public static  HashMap<Player, Player> teleportRequests = new HashMap<>();
+
     //LİSTELER
 
 
-    static void consoleSendMessage(String message, Color colorType) {
+    public static void consoleSendMessage(String message, Color colorType) {
         String selectedColor = "§2";
         if (colorType.equals(Color.GREEN)) {
             selectedColor = "§a";
@@ -39,23 +44,27 @@ public final class minecraftplugin extends JavaPlugin {
         Bukkit.getConsoleSender().sendMessage(ARMOYUTag + selectedColor + message);
     }
 
-    static void consoleSendMessage(String message) {
+    public static void consoleSendMessage(String message) {
         Bukkit.getConsoleSender().sendMessage(ARMOYUTag + ARMOYUTagColor + message);
     }
 
 
-    static void sendMessage(String message) {
+    public static void sendMessage(String message) {
         Bukkit.getServer().broadcastMessage(ARMOYUTag + ARMOYUTagColor + message);
     }
 
-    static void sendActionBarMessage(Player player, String message) {
+    public static void sendActionBarMessage(Player player, String message) {
         player.spigot().sendMessage(ChatMessageType.ACTION_BAR, TextComponent.fromLegacy(message));
     }
 
-    static void sendActionBarToAllPlayers(String message) {
+    public static void sendActionBarToAllPlayers(String message) {
         for (Player player : Bukkit.getOnlinePlayers()) {
             sendActionBarMessage(player, message);
         }
+    }
+
+    public static void sendMessagePlayer(String message, Player p) {
+        p.sendMessage(ARMOYUTag + ARMOYUTagColor + message);
     }
 
     public void startActionBarTask() {
@@ -109,7 +118,12 @@ public final class minecraftplugin extends JavaPlugin {
         startActionBarTask();
 
         getServer().getPluginManager().registerEvents(new listener(), this);
+        getServer().getPluginManager().registerEvents(new sleepingbed(), this);
 
+        //Komutlar
+        getCommand("tpa").setExecutor(new teleport.MyCommandExecutor());
+        getCommand("tpaccept").setExecutor(new teleport.MyCommandExecutor());
+        getCommand("tpdeny").setExecutor(new teleport.MyCommandExecutor());
     }
 
     @Override
