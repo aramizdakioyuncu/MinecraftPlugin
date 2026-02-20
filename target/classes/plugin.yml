@@ -12,3 +12,9 @@ commands:
   tpdeny:
     description: tp isteği reddilmesi
     usage: /tpdeny
+  login:
+    description: Oyuncuyu giriş yapmaya zorlar
+    usage: /login <parola>
+  register:
+    description: Oyuncuyu kayıt eder
+    usage: /register <parola>

@@ -1,5 +1,7 @@
 package com.armoyu;
 
+import com.armoyu.plugins.actionmanager.ActionManager;
+import com.armoyu.plugins.auth.commands.LoginRegisterCommand;
 import com.armoyu.plugins.sleeppingbed.listener.sleepingbed;
 import com.armoyu.plugins.teleport.listener.teleport;
 import net.md_5.bungee.api.ChatMessageType;
@@ -17,17 +19,14 @@ import java.util.Set;
 
 public final class minecraftplugin extends JavaPlugin {
 
-
     public static String ARMOYUTag = "§b[ARMOYU] ";
     public static String ARMOYUTagColor = "§e";
 
-
-    //LİSTELER
+    // LİSTELER
     public static final Set<Player> playersInBed = new HashSet<>();
-    public static  HashMap<Player, Player> teleportRequests = new HashMap<>();
+    public static HashMap<Player, Player> teleportRequests = new HashMap<>();
 
-    //LİSTELER
-
+    // LİSTELER
 
     public static void consoleSendMessage(String message, Color colorType) {
         String selectedColor = "§2";
@@ -47,7 +46,6 @@ public final class minecraftplugin extends JavaPlugin {
     public static void consoleSendMessage(String message) {
         Bukkit.getConsoleSender().sendMessage(ARMOYUTag + ARMOYUTagColor + message);
     }
-
 
     public static void sendMessage(String message) {
         Bukkit.getServer().broadcastMessage(ARMOYUTag + ARMOYUTagColor + message);
@@ -70,7 +68,6 @@ public final class minecraftplugin extends JavaPlugin {
     public void startActionBarTask() {
         // Her saniyede bir çalışan bir görev oluştur
 
-
         new BukkitRunnable() {
 
             int sayac = 5;
@@ -81,7 +78,6 @@ public final class minecraftplugin extends JavaPlugin {
 
                 double oran = ((double) currentplayermembercount / 2);
 
-
                 if (minecraftplugin.playersInBed.size() >= oran) {
                     sayac--;
 
@@ -89,7 +85,7 @@ public final class minecraftplugin extends JavaPlugin {
 
                     if (sayac <= 0) {
                         World world = Bukkit.getWorld("world");
-                        world.setTime(1000); //Gündüz yap
+                        world.setTime(1000); // Gündüz yap
                         world.setStorm(false); // Yağmuru kapat
                         world.setThundering(false); // Yıldırımı kapat
                         world.setWeatherDuration(6000); // Temiz hava süresini ayarla (6000 tick = 5 dakika)
@@ -114,13 +110,20 @@ public final class minecraftplugin extends JavaPlugin {
         consoleSendMessage("Yesil Renk", Color.GREEN);
         consoleSendMessage("Kirmizi Renk", Color.RED);
 
-        //SAYAÇ FINKSİYONU BAŞLAT
+        // SAYAÇ FONKSİYONU BAŞLAT
         startActionBarTask();
-
+        ActionManager actionManager = new ActionManager(this);
+        getServer().getPluginManager().registerEvents(actionManager, this);
         getServer().getPluginManager().registerEvents(new listener(), this);
         getServer().getPluginManager().registerEvents(new sleepingbed(), this);
 
-        //Komutlar
+        // Komutlar
+
+        // login ve register komutlarını tek executor ile bağla
+        LoginRegisterCommand loginCommand = new LoginRegisterCommand(actionManager);
+        getCommand("login").setExecutor(loginCommand);
+        getCommand("register").setExecutor(loginCommand);
+
         getCommand("tpa").setExecutor(new teleport.MyCommandExecutor());
         getCommand("tpaccept").setExecutor(new teleport.MyCommandExecutor());
         getCommand("tpdeny").setExecutor(new teleport.MyCommandExecutor());

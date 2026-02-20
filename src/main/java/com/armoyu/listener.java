@@ -9,25 +9,11 @@ import org.bukkit.event.player.PlayerBedEnterEvent;
 import org.bukkit.event.player.PlayerBedLeaveEvent;
 import org.bukkit.event.player.PlayerMoveEvent;
 
-import java.util.HashSet;
-import java.util.Set;
 
 public class listener implements Listener {
 
 
     // Yatağa yatan oyuncuları tutmak için bir set
-
-    @EventHandler
-    public void onMove(PlayerMoveEvent Event) {
-        Player p = Event.getPlayer();
-
-        if (p.getName().equals("pandora")) {
-            minecraftplugin.consoleSendMessage(p.getDisplayName() + " kullanıcı kısıtlandı");
-            Event.setCancelled(true);
-            return;
-        }
-        Event.setCancelled(false);
-    }
 
     @EventHandler
     public void enterBed(PlayerBedEnterEvent Event) {
