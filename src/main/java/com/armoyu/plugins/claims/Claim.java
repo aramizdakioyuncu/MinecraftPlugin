@@ -7,7 +7,7 @@ import java.util.UUID;
 public class Claim {
     private final UUID id;
     private final String world;
-    private final int minX, maxX, minZ, maxZ;
+    private int minX, maxX, minZ, maxZ;
     private final UUID ownerPlayer; // Null if clan claim
     private final UUID ownerClan; // Null if player claim
     private final Set<UUID> trustedPlayers = new HashSet<>();
@@ -21,6 +21,17 @@ public class Claim {
         this.maxX = Math.max(x1, x2);
         this.minZ = Math.min(z1, z2);
         this.maxZ = Math.max(z1, z2);
+    }
+
+    public int getArea() {
+        return (maxX - minX + 1) * (maxZ - minZ + 1);
+    }
+
+    public void expand(int newMinX, int newMaxX, int newMinZ, int newMaxZ) {
+        this.minX = newMinX;
+        this.maxX = newMaxX;
+        this.minZ = newMinZ;
+        this.maxZ = newMaxZ;
     }
 
     public UUID getId() {

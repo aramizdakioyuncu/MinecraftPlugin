@@ -14,4 +14,15 @@ economy:
     home: 50.0
     spawn: 100.0
     land_spawn: 150.0
+    tpa: 25.0
+  clan_creation_cost: 1000.0
+  clan_levelup_cost: 5000.0
+  castle_cost: 10000.0
   balances: {}
+# Database Settings
+database:
+  host: "localhost"
+  port: 5432
+  database: "minecraft"
+  username: "postgres"
+  password: "password"

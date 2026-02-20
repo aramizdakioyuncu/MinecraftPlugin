@@ -118,6 +118,12 @@ public class ClanManager {
             config.set(path + ".castleName", clan.getCastleName());
             config.set(path + ".castleType", clan.getCastleType());
 
+            // Save Castles List
+            for (Map.Entry<String, String[]> entry : clan.getCastles().entrySet()) {
+                config.set(path + ".castles." + entry.getKey() + ".name", entry.getValue()[0]);
+                config.set(path + ".castles." + entry.getKey() + ".type", entry.getValue()[1]);
+            }
+
             // Save Land Spawns
             for (Map.Entry<UUID, Location> entry : clan.getLandSpawns().entrySet()) {
                 config.set(path + ".landspawns." + entry.getKey().toString(), entry.getValue());
@@ -156,6 +162,15 @@ public class ClanManager {
             }
             clan.setCastleName(config.getString(path + ".castleName"));
             clan.setCastleType(config.getString(path + ".castleType"));
+
+            // Load Castles List
+            if (config.contains(path + ".castles")) {
+                for (String castleKey : config.getConfigurationSection(path + ".castles").getKeys(false)) {
+                    String cName = config.getString(path + ".castles." + castleKey + ".name");
+                    String cType = config.getString(path + ".castles." + castleKey + ".type");
+                    clan.addCastle(castleKey, cName, cType);
+                }
+            }
 
             // Load Land Spawns
             if (config.contains(path + ".landspawns")) {

@@ -2,6 +2,7 @@ package com.armoyu.plugins.kits;
 
 import com.armoyu.plugins.actionmanager.ActionManager;
 import com.armoyu.plugins.economy.MoneyManager;
+import com.armoyu.utils.PlayerRole;
 import org.bukkit.ChatColor;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandExecutor;
@@ -29,6 +30,11 @@ public class KitCommand implements CommandExecutor {
         }
 
         Player player = (Player) sender;
+
+        if (actionManager.getRole(player) == PlayerRole.GUEST) {
+            player.sendMessage(ChatColor.RED + "Kit komutlarını kullanabilmek için giriş yapmalısınız!");
+            return true;
+        }
 
         if (args.length == 0) {
             sendKitList(player);

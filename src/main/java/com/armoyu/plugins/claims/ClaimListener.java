@@ -107,17 +107,29 @@ public class ClaimListener implements Listener {
     }
 
     private void visualizeClaim(Player player, Claim claim) {
-        // Göstermek için köşeler ve kenarlar
         List<Location> edgeBlocks = new ArrayList<>();
 
-        for (int x = claim.getMinX(); x <= claim.getMaxX(); x++) {
+        int xLen = claim.getMaxX() - claim.getMinX() + 1;
+        int zLen = claim.getMaxZ() - claim.getMinZ() + 1;
+
+        // Büyük claimler için her bloğu gösterme, aralıklarla örnekle
+        int xStep = Math.max(1, xLen / 50); // X kenarında maks ~50 blok
+        int zStep = Math.max(1, zLen / 50); // Z kenarında maks ~50 blok
+
+        for (int x = claim.getMinX(); x <= claim.getMaxX(); x += xStep) {
             edgeBlocks.add(getGroundLocation(player.getWorld(), x, claim.getMinZ()));
             edgeBlocks.add(getGroundLocation(player.getWorld(), x, claim.getMaxZ()));
         }
-        for (int z = claim.getMinZ(); z <= claim.getMaxZ(); z++) {
+        for (int z = claim.getMinZ(); z <= claim.getMaxZ(); z += zStep) {
             edgeBlocks.add(getGroundLocation(player.getWorld(), claim.getMinX(), z));
             edgeBlocks.add(getGroundLocation(player.getWorld(), claim.getMaxX(), z));
         }
+
+        // Köşeleri mutlaka ekle
+        edgeBlocks.add(getGroundLocation(player.getWorld(), claim.getMinX(), claim.getMinZ()));
+        edgeBlocks.add(getGroundLocation(player.getWorld(), claim.getMaxX(), claim.getMinZ()));
+        edgeBlocks.add(getGroundLocation(player.getWorld(), claim.getMinX(), claim.getMaxZ()));
+        edgeBlocks.add(getGroundLocation(player.getWorld(), claim.getMaxX(), claim.getMaxZ()));
 
         // Blokları altın bloğu olarak göster
         for (Location l : edgeBlocks) {
@@ -131,7 +143,7 @@ public class ClaimListener implements Listener {
                         Block b = l.getBlock();
                         player.sendBlockChange(l, b.getType(), b.getData());
                     }
-                }, 100L); // 5 saniye (100 ticks)
+                }, 100L);
     }
 
     private boolean canModify(Player player, org.bukkit.Location loc) {

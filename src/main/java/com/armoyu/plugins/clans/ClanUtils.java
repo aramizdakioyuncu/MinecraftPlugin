@@ -1,8 +1,15 @@
 package com.armoyu.plugins.clans;
 
+import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.Location;
+import org.bukkit.configuration.file.FileConfiguration;
+import org.bukkit.configuration.file.YamlConfiguration;
 import org.bukkit.entity.ArmorStand;
+import org.bukkit.plugin.java.JavaPlugin;
+
+import java.io.File;
+import java.io.IOException;
 
 public class ClanUtils {
 
@@ -10,13 +17,30 @@ public class ClanUtils {
         if (loc == null)
             return;
 
-        Location targetLoc = loc.clone().add(0, 2.0, 0);
+        JavaPlugin plugin = com.armoyu.minecraftplugin.getPlugin(com.armoyu.minecraftplugin.class);
+        File file = new File(plugin.getDataFolder(), "labels.yml");
+        FileConfiguration config = YamlConfiguration.loadConfiguration(file);
 
-        // Remove existing armor stands nearby
-        targetLoc.getWorld().getNearbyEntities(targetLoc, 2, 3, 2).stream()
-                .filter(e -> e instanceof ArmorStand)
-                .filter(e -> e.getCustomName() != null && e.getCustomName().contains(suffix))
-                .forEach(org.bukkit.entity.Entity::remove);
+        String key = clan.getId().toString() + "." + suffix;
+
+        // Eski etiketi dosyadan bul ve sil
+        if (config.contains(key)) {
+            String worldName = config.getString(key + ".world");
+            double oldX = config.getDouble(key + ".x");
+            double oldY = config.getDouble(key + ".y");
+            double oldZ = config.getDouble(key + ".z");
+
+            org.bukkit.World world = Bukkit.getWorld(worldName);
+            if (world != null) {
+                Location oldLoc = new Location(world, oldX, oldY, oldZ);
+                // Sadece o noktadaki zırh askılarını temizle
+                world.getNearbyEntities(oldLoc, 0.5, 0.5, 0.5).stream()
+                        .filter(e -> e instanceof ArmorStand)
+                        .forEach(org.bukkit.entity.Entity::remove);
+            }
+        }
+
+        Location targetLoc = loc.clone().add(0, 2.0, 0);
 
         ArmorStand as = targetLoc.getWorld().spawn(targetLoc, ArmorStand.class);
         as.setVisible(false);
@@ -28,5 +52,16 @@ public class ClanUtils {
                 ChatColor.GOLD + "[" + ChatColor.YELLOW + clan.getName() + " " + suffix + ChatColor.GOLD + "]");
         as.setCustomNameVisible(true);
         as.setMarker(true);
+
+        // Yeni konumu dosyaya kaydet
+        config.set(key + ".world", targetLoc.getWorld().getName());
+        config.set(key + ".x", targetLoc.getX());
+        config.set(key + ".y", targetLoc.getY());
+        config.set(key + ".z", targetLoc.getZ());
+        try {
+            config.save(file);
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
     }
 }

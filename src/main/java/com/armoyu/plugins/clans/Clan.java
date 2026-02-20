@@ -20,6 +20,8 @@ public class Clan {
     private String castleName;
     private String castleType;
     private final Map<UUID, Location> landSpawns = new HashMap<>();
+    // castleId -> [name, type]
+    private final Map<String, String[]> castles = new LinkedHashMap<>();
 
     public void setId(UUID id) {
         this.id = id;
@@ -179,5 +181,13 @@ public class Clan {
 
     public Location getLandSpawn(UUID landId) {
         return landSpawns.get(landId);
+    }
+
+    public Map<String, String[]> getCastles() {
+        return castles;
+    }
+
+    public void addCastle(String castleId, String name, String type) {
+        castles.put(castleId, new String[] { name, type });
     }
 }

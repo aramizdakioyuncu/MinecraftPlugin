@@ -58,6 +58,9 @@ public final class minecraftplugin extends JavaPlugin {
 
                 saveDefaultConfig();
 
+                // StructureManager init
+                com.armoyu.plugins.structures.StructureManager.init(this);
+
                 ActionManager actionManager = new ActionManager();
                 getServer().getPluginManager().registerEvents(actionManager, this);
 
@@ -82,7 +85,7 @@ public final class minecraftplugin extends JavaPlugin {
                 TeleportManager teleportManager = new TeleportManager();
                 getServer().getPluginManager().registerEvents(new TeleportListener(teleportManager), this);
 
-                getCommand("tpa").setExecutor(new TpaCommand(teleportManager, actionManager));
+                getCommand("tpa").setExecutor(new TpaCommand(teleportManager, actionManager, moneyManager, this));
                 getCommand("tpaccept").setExecutor(new TpAcceptCommand(teleportManager, actionManager, this));
                 getCommand("tpdeny").setExecutor(new TpDenyCommand(teleportManager, actionManager));
 
@@ -94,7 +97,7 @@ public final class minecraftplugin extends JavaPlugin {
                 // Trader System
                 TraderManager traderManager = new TraderManager(moneyManager);
                 TraderGUI traderGUI = new TraderGUI(traderManager);
-                getCommand("tuccar").setExecutor(new TraderCommand(traderManager, traderGUI));
+                getCommand("tuccar").setExecutor(new TraderCommand(traderManager, traderGUI, actionManager));
                 getServer().getPluginManager().registerEvents(traderGUI, this);
 
                 // Clan System
@@ -109,12 +112,29 @@ public final class minecraftplugin extends JavaPlugin {
 
                 getCommand("klan").setExecutor(
                                 new ClanCommand(clanManager, moneyManager, clanListener, vaultGUI, teleportManager,
-                                                claimManager));
-                getCommand("claim").setExecutor(new ClaimCommand(claimManager, moneyManager, clanManager));
+                                                claimManager, actionManager));
+                getCommand("claim")
+                                .setExecutor(new ClaimCommand(claimManager, moneyManager, clanManager, actionManager));
 
                 // Kit System
                 KitManager kitManager = new KitManager(this);
                 getCommand("kit").setExecutor(new KitCommand(kitManager, moneyManager, actionManager));
+
+                // WorldEdit System
+                com.armoyu.plugins.worldedit.WorldEditManager weManager = new com.armoyu.plugins.worldedit.WorldEditManager(
+                                this);
+                getCommand("we").setExecutor(
+                                new com.armoyu.plugins.worldedit.WorldEditCommand(weManager, actionManager));
+                getServer().getPluginManager()
+                                .registerEvents(new com.armoyu.plugins.worldedit.WorldEditListener(weManager), this);
+
+                // GameRule System
+                com.armoyu.plugins.gamerule.GameRuleManager gameRuleManager = new com.armoyu.plugins.gamerule.GameRuleManager(
+                                this);
+                getCommand("gr").setExecutor(
+                                new com.armoyu.plugins.gamerule.GameRuleCommand(gameRuleManager, actionManager));
+                getServer().getPluginManager().registerEvents(
+                                new com.armoyu.plugins.gamerule.GameRuleListener(gameRuleManager), this);
 
                 getServer().getPluginManager().registerEvents(clanListener, this);
                 getServer().getPluginManager().registerEvents(vaultGUI, this);

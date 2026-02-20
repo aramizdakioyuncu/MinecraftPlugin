@@ -8,12 +8,16 @@ com\armoyu\plugins\trader\MarketItem.class
 com\armoyu\plugins\teleport\TeleportListener.class
 com\armoyu\plugins\trader\TraderGUI.class
 com\armoyu\plugins\claims\Claim.class
+com\armoyu\plugins\gamerule\GameRuleCommand.class
 com\armoyu\plugins\structures\StructureManager.class
+com\armoyu\plugins\clans\commands\ClanCommand$2.class
+com\armoyu\plugins\gamerule\GameRuleManager.class
 com\armoyu\plugins\teleport\TeleportManager.class
 com\armoyu\plugins\sleeppingbed\SleepingBedListener.class
 com\armoyu\plugins\clans\commands\ClanCommand.class
 com\armoyu\plugins\trader\TraderCommand.class
 com\armoyu\plugins\structures\impl\CastleWood.class
+com\armoyu\plugins\worldedit\WorldEditListener.class
 com\armoyu\plugins\claims\ClaimManager.class
 com\armoyu\plugins\sethome\SetHomeCommand.class
 com\armoyu\plugins\trader\TraderManager.class
@@ -22,6 +26,7 @@ com\armoyu\plugins\auth\commands\LoginRegisterCommand.class
 com\armoyu\plugins\structures\IStructure.class
 com\armoyu\plugins\clans\Clan.class
 com\armoyu\plugins\authspawn\SpawnManager.class
+com\armoyu\plugins\clans\commands\ClanCommand$3.class
 com\armoyu\plugins\claims\commands\ClaimCommand.class
 com\armoyu\plugins\clans\ClanUtils.class
 com\armoyu\plugins\sethome\HomeListener.class
@@ -29,6 +34,7 @@ com\armoyu\plugins\teleport\TpAcceptCommand$1.class
 com\armoyu\plugins\teleport\TpaCommand.class
 com\armoyu\plugins\teleport\TpDenyCommand.class
 com\armoyu\plugins\clans\ClanListener.class
+com\armoyu\plugins\worldedit\WorldEditCommand.class
 com\armoyu\plugins\authspawn\AuthSpawnCommand.class
 com\armoyu\plugins\sleeppingbed\SleepingBedManager.class
 com\armoyu\plugins\claims\ClaimListener.class
@@ -40,6 +46,7 @@ com\armoyu\plugins\sethome\HomeCommand.class
 com\armoyu\plugins\sethome\HomeManager.class
 com\armoyu\plugins\clans\ClanVaultGUI.class
 com\armoyu\minecraftplugin.class
+com\armoyu\plugins\worldedit\WorldEditManager.class
 com\armoyu\plugins\sleeppingbed\SleepingBedManager$1.class
 com\armoyu\plugins\structures\impl\CastleClassic.class
 com\armoyu\plugins\teleport\TpAcceptCommand.class
@@ -47,4 +54,5 @@ com\armoyu\plugins\actionmanager\ActionManager.class
 com\armoyu\plugins\kits\KitCommand.class
 com\armoyu\plugins\kits\KitManager.class
 com\armoyu\plugins\ui\ScoreManager.class
+com\armoyu\plugins\gamerule\GameRuleListener.class
 com\armoyu\utils\ChatUtils.class

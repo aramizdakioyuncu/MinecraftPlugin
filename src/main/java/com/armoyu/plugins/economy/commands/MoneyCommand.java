@@ -4,6 +4,7 @@ import com.armoyu.plugins.actionmanager.ActionManager;
 import com.armoyu.plugins.economy.MoneyManager;
 import com.armoyu.utils.ChatUtils;
 import com.armoyu.utils.PlayerPermission;
+import com.armoyu.utils.PlayerRole;
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.command.Command;
@@ -29,6 +30,11 @@ public class MoneyCommand implements CommandExecutor {
         }
 
         Player player = (Player) sender;
+
+        if (actionManager.getRole(player) == PlayerRole.GUEST) {
+            player.sendMessage(ChatColor.RED + "Ekonomi komutlarını kullanabilmek için giriş yapmalısınız!");
+            return true;
+        }
 
         if (args.length == 0) {
             double balance = moneyManager.getBalance(player.getUniqueId());

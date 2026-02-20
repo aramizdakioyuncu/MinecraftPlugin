@@ -45,3 +45,11 @@ commands:
   kit:
     description: "Kit listesini gösterir veya kit alır."
     usage: /kit [isim]
+  we:
+    description: "WorldEdit yapı yönetim aracı (Admin)"
+    usage: /we [balta|kopyala|yapistir|kaydet|yukle|liste]
+    aliases: [worldedit]
+  gr:
+    description: "Oyun kuralları yönetimi (Admin)"
+    usage: /gr [kural] [true/false]
+    aliases: [gamerule, kurallar]

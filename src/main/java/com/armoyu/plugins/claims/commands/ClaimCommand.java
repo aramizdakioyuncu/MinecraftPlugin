@@ -6,6 +6,8 @@ import com.armoyu.plugins.clans.Clan;
 import com.armoyu.plugins.clans.ClanManager;
 import com.armoyu.plugins.clans.ClanUtils;
 import com.armoyu.plugins.economy.MoneyManager;
+import com.armoyu.plugins.actionmanager.ActionManager;
+import com.armoyu.utils.PlayerRole;
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.Location;
@@ -20,11 +22,14 @@ public class ClaimCommand implements CommandExecutor {
     private final ClaimManager claimManager;
     private final MoneyManager moneyManager;
     private final ClanManager clanManager;
+    private final ActionManager actionManager;
 
-    public ClaimCommand(ClaimManager claimManager, MoneyManager moneyManager, ClanManager clanManager) {
+    public ClaimCommand(ClaimManager claimManager, MoneyManager moneyManager, ClanManager clanManager,
+            ActionManager actionManager) {
         this.claimManager = claimManager;
         this.moneyManager = moneyManager;
         this.clanManager = clanManager;
+        this.actionManager = actionManager;
     }
 
     @Override
@@ -33,8 +38,13 @@ public class ClaimCommand implements CommandExecutor {
             return true;
         Player player = (Player) sender;
 
+        if (actionManager.getRole(player) == PlayerRole.GUEST) {
+            player.sendMessage(ChatColor.RED + "Arsa komutlarını kullanabilmek için giriş yapmalısınız!");
+            return true;
+        }
+
         if (args.length == 0) {
-            player.sendMessage(ChatColor.YELLOW + "/claim baslat - Seçili alanı size zimmetler.");
+            player.sendMessage(ChatColor.YELLOW + "/claim al - Seçili alanı size zimmetler (veya genişletir).");
             player.sendMessage(ChatColor.YELLOW + "/claim sil - Durduğunuz yerdeki claimi siler.");
             player.sendMessage(ChatColor.YELLOW + "/claim liste - Sahip olduğunuz claimleri listeler.");
             player.sendMessage(ChatColor.YELLOW + "/claim trust <oyuncu> - Claiminize arkadaş ekler.");
@@ -44,7 +54,7 @@ public class ClaimCommand implements CommandExecutor {
         }
 
         switch (args[0].toLowerCase()) {
-            case "baslat":
+            case "al":
                 handleClaimCreate(player, false);
                 break;
             case "sil":
@@ -74,10 +84,21 @@ public class ClaimCommand implements CommandExecutor {
             return;
         }
 
+        // Genişletme kontrolü: Seçilen noktalardan biri mevcut bir claim'in içindeyse
+        // genişletme yap
+        Claim existingClaim = claimManager.getClaimAt(points[0]);
+        if (existingClaim == null)
+            existingClaim = claimManager.getClaimAt(points[1]);
+
+        if (existingClaim != null) {
+            handleClaimExpand(player, existingClaim, points, isClan);
+            return;
+        }
+
         int width = Math.abs(points[0].getBlockX() - points[1].getBlockX()) + 1;
         int length = Math.abs(points[0].getBlockZ() - points[1].getBlockZ()) + 1;
         int area = width * length;
-        double cost = area * 10.0; // Örnek maliyet: Blok başı 10 ARMO
+        double cost = area * 10.0;
 
         if (isClan) {
             Clan clan = clanManager.getClanByPlayer(player.getUniqueId());
@@ -89,14 +110,20 @@ public class ClaimCommand implements CommandExecutor {
                 player.sendMessage(ChatColor.RED + "Klan kasasında yeterli para yok! (Gereken: " + cost + " ARMO)");
                 return;
             }
-            if (claimManager.createClaim(null, clan.getId(), points[0], points[1]) != null) {
+            Claim newClaim = claimManager.createClaim(null, clan.getId(), points[0], points[1]);
+            if (newClaim != null) {
                 player.sendMessage(ChatColor.GREEN + "Klan claimi başarıyla oluşturuldu! (" + area + " blok)");
 
                 Location center = points[0].clone().add(points[1]).multiply(0.5);
+                center.setY(points[0].getWorld().getHighestBlockYAt(center) + 1.0);
+
+                clan.setLandSpawn(newClaim.getId(), center);
+                clanManager.saveClans();
+
                 ClanUtils.updateLocationVisual(clan, center, "Bölgesi");
             } else {
                 player.sendMessage(ChatColor.RED + "Bu alan başka bir claim ile çakışıyor!");
-                clan.addBalance(cost); // Refund
+                clan.addBalance(cost);
             }
         } else {
             if (!moneyManager.hasEnough(player.getUniqueId(), cost)) {
@@ -108,6 +135,71 @@ public class ClaimCommand implements CommandExecutor {
                 player.sendMessage(ChatColor.GREEN + "Bölge başarıyla claimlendi! (" + area + " blok)");
             } else {
                 player.sendMessage(ChatColor.RED + "Bu alan başka bir claim ile çakışıyor!");
+            }
+        }
+    }
+
+    private void handleClaimExpand(Player player, Claim existing, Location[] points, boolean isClan) {
+        // Sahiplik kontrolü
+        boolean canExpand = false;
+        Clan clan = null;
+        if (isClan) {
+            clan = clanManager.getClanByPlayer(player.getUniqueId());
+            if (clan != null && existing.getOwnerClan() != null && existing.getOwnerClan().equals(clan.getId())
+                    && clan.isOfficer(player.getUniqueId())) {
+                canExpand = true;
+            }
+        } else {
+            if (existing.getOwnerPlayer() != null && existing.getOwnerPlayer().equals(player.getUniqueId())) {
+                canExpand = true;
+            }
+        }
+
+        if (!canExpand) {
+            player.sendMessage(ChatColor.RED + "Bu claim size ait değil, genişletemezsiniz!");
+            return;
+        }
+
+        // Yeni sınırları hesapla (mevcut claim + yeni noktaların tümünü kapsa)
+        int newMinX = Math.min(existing.getMinX(), Math.min(points[0].getBlockX(), points[1].getBlockX()));
+        int newMaxX = Math.max(existing.getMaxX(), Math.max(points[0].getBlockX(), points[1].getBlockX()));
+        int newMinZ = Math.min(existing.getMinZ(), Math.min(points[0].getBlockZ(), points[1].getBlockZ()));
+        int newMaxZ = Math.max(existing.getMaxZ(), Math.max(points[0].getBlockZ(), points[1].getBlockZ()));
+
+        int oldArea = existing.getArea();
+        int newArea = (newMaxX - newMinX + 1) * (newMaxZ - newMinZ + 1);
+        int addedArea = newArea - oldArea;
+
+        if (addedArea <= 0) {
+            player.sendMessage(ChatColor.YELLOW + "Seçim mevcut arsanın dışına çıkmıyor, genişletmeye gerek yok.");
+            return;
+        }
+
+        double cost = addedArea * 10.0;
+
+        if (isClan && clan != null) {
+            if (!clan.removeBalance(cost)) {
+                player.sendMessage(ChatColor.RED + "Klan kasasında yeterli para yok! (Gereken: " + cost + " ARMO)");
+                return;
+            }
+            if (claimManager.expandClaim(existing, newMinX, newMaxX, newMinZ, newMaxZ)) {
+                player.sendMessage(ChatColor.GREEN + "Klan arsası genişletildi! (+" + addedArea + " blok, ücret: "
+                        + cost + " ARMO)");
+            } else {
+                player.sendMessage(ChatColor.RED + "Genişletme başka bir claim ile çakışıyor!");
+                clan.addBalance(cost);
+            }
+        } else {
+            if (!moneyManager.hasEnough(player.getUniqueId(), cost)) {
+                player.sendMessage(ChatColor.RED + "Yetersiz bakiye! (Gereken: " + cost + " ARMO)");
+                return;
+            }
+            if (claimManager.expandClaim(existing, newMinX, newMaxX, newMinZ, newMaxZ)) {
+                moneyManager.removeMoney(player.getUniqueId(), cost);
+                player.sendMessage(
+                        ChatColor.GREEN + "Arsa genişletildi! (+" + addedArea + " blok, ücret: " + cost + " ARMO)");
+            } else {
+                player.sendMessage(ChatColor.RED + "Genişletme başka bir claim ile çakışıyor!");
             }
         }
     }

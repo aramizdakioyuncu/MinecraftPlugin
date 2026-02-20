@@ -1,5 +1,7 @@
 package com.armoyu.plugins.trader;
 
+import com.armoyu.plugins.actionmanager.ActionManager;
+import com.armoyu.utils.PlayerRole;
 import org.bukkit.ChatColor;
 import org.bukkit.Material;
 import org.bukkit.command.Command;
@@ -12,10 +14,12 @@ public class TraderCommand implements CommandExecutor {
 
     private final TraderManager traderManager;
     private final TraderGUI traderGUI;
+    private final ActionManager actionManager;
 
-    public TraderCommand(TraderManager traderManager, TraderGUI traderGUI) {
+    public TraderCommand(TraderManager traderManager, TraderGUI traderGUI, ActionManager actionManager) {
         this.traderManager = traderManager;
         this.traderGUI = traderGUI;
+        this.actionManager = actionManager;
     }
 
     @Override
@@ -26,6 +30,11 @@ public class TraderCommand implements CommandExecutor {
         }
 
         Player player = (Player) sender;
+
+        if (actionManager.getRole(player) == PlayerRole.GUEST) {
+            player.sendMessage(ChatColor.RED + "Tüccar komutlarını kullanabilmek için giriş yapmalısınız!");
+            return true;
+        }
 
         if (args.length == 0) {
             traderGUI.openGUI(player);

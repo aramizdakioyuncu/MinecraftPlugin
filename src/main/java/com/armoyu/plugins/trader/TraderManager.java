@@ -20,52 +20,67 @@ public class TraderManager {
     }
 
     public List<MarketItem> getAllItems() {
-        return new ArrayList<>(marketItems);
+        synchronized (marketItems) {
+            return new ArrayList<>(marketItems);
+        }
     }
 
     public List<MarketItem> getPlayerItems(UUID sellerId) {
-        return marketItems.stream()
-                .filter(item -> item.getSellerId().equals(sellerId))
-                .collect(Collectors.toList());
+        synchronized (marketItems) {
+            return marketItems.stream()
+                    .filter(item -> item.getSellerId().equals(sellerId))
+                    .collect(Collectors.toList());
+        }
     }
 
     public boolean listItem(Player seller, ItemStack item, double price) {
-        if (getPlayerItems(seller.getUniqueId()).size() >= MAX_ITEMS_PER_PLAYER) {
-            return false;
-        }
+        synchronized (marketItems) {
+            if (getPlayerItems(seller.getUniqueId()).size() >= MAX_ITEMS_PER_PLAYER) {
+                return false;
+            }
 
-        MarketItem marketItem = new MarketItem(seller.getUniqueId(), seller.getName(), item.clone(), price);
-        marketItems.add(marketItem);
-        return true;
+            MarketItem marketItem = new MarketItem(seller.getUniqueId(), seller.getName(), item.clone(), price);
+            marketItems.add(marketItem);
+            return true;
+        }
     }
 
     public boolean buyItem(Player buyer, UUID marketItemId) {
-        MarketItem marketItem = marketItems.stream()
-                .filter(item -> item.getId().equals(marketItemId))
-                .findFirst()
-                .orElse(null);
+        MarketItem marketItem;
 
-        if (marketItem == null)
-            return false;
-        if (marketItem.getSellerId().equals(buyer.getUniqueId()))
-            return false; // Kendi malını alamaz
+        // Atomik bul-ve-sil: aynı anda iki kişi aynı itemi alamaz
+        synchronized (marketItems) {
+            marketItem = marketItems.stream()
+                    .filter(item -> item.getId().equals(marketItemId))
+                    .findFirst()
+                    .orElse(null);
 
-        if (!moneyManager.hasEnough(buyer.getUniqueId(), marketItem.getPrice())) {
-            return false;
+            if (marketItem == null)
+                return false; // Zaten satılmış veya silinmiş
+            if (marketItem.getSellerId().equals(buyer.getUniqueId()))
+                return false; // Kendi malını alamaz
+
+            if (!moneyManager.hasEnough(buyer.getUniqueId(), marketItem.getPrice())) {
+                return false;
+            }
+
+            // Ürünü listeden HEMEN kaldır — ikinci alıcı burada null alacak
+            marketItems.remove(marketItem);
         }
 
-        // Para transferi
+        // Para transferi (artık ürün listeden kaldırılmış durumda)
         moneyManager.removeMoney(buyer.getUniqueId(), marketItem.getPrice());
         moneyManager.addMoney(marketItem.getSellerId(), marketItem.getPrice());
 
         // Eşya teslimi
         buyer.getInventory().addItem(marketItem.getItem());
-        marketItems.remove(marketItem);
 
         return true;
     }
 
     public void removeItem(UUID marketItemId) {
-        marketItems.removeIf(item -> item.getId().equals(marketItemId));
+        synchronized (marketItems) {
+            marketItems.removeIf(item -> item.getId().equals(marketItemId));
+        }
     }
 }

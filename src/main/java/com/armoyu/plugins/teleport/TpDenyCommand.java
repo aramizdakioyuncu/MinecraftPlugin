@@ -40,6 +40,9 @@ public class TpDenyCommand implements CommandExecutor {
 
         Player requester = teleportManager.getRequestSender(target);
         if (requester != null && requester.isOnline()) {
+            // Eğer ışınlanma zaten başlamışsa (sayaç varsa) iptal et
+            teleportManager.cancelTask(requester);
+
             ChatUtils.sendMessagePlayer(requester,
                     ChatColor.RED + target.getName() + " ışınlanma isteğinizi reddetti.");
         }

@@ -52,6 +52,23 @@ public class ClaimManager {
         return newClaim;
     }
 
+    public boolean expandClaim(Claim existing, int newMinX, int newMaxX, int newMinZ, int newMaxZ) {
+        // Geçici genişletilmiş claim oluştur (overlap kontrolü için)
+        Claim temp = new Claim(existing.getOwnerPlayer(), existing.getOwnerClan(), existing.getWorld(),
+                newMinX, newMaxX, newMinZ, newMaxZ);
+
+        for (Claim c : claims) {
+            if (c == existing)
+                continue;
+            if (isOverlapping(temp, c))
+                return false;
+        }
+
+        existing.expand(newMinX, newMaxX, newMinZ, newMaxZ);
+        saveClaims();
+        return true;
+    }
+
     private boolean isOverlapping(Claim c1, Claim c2) {
         if (!c1.getWorld().equals(c2.getWorld()))
             return false;
