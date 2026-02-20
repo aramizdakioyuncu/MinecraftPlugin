@@ -23,6 +23,7 @@ com\armoyu\plugins\structures\IStructure.class
 com\armoyu\plugins\clans\Clan.class
 com\armoyu\plugins\authspawn\SpawnManager.class
 com\armoyu\plugins\claims\commands\ClaimCommand.class
+com\armoyu\plugins\clans\ClanUtils.class
 com\armoyu\plugins\sethome\HomeListener.class
 com\armoyu\plugins\teleport\TpAcceptCommand$1.class
 com\armoyu\plugins\teleport\TpaCommand.class

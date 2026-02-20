@@ -4,6 +4,7 @@ import com.armoyu.plugins.claims.Claim;
 import com.armoyu.plugins.claims.ClaimManager;
 import com.armoyu.plugins.clans.Clan;
 import com.armoyu.plugins.clans.ClanManager;
+import com.armoyu.plugins.clans.ClanUtils;
 import com.armoyu.plugins.economy.MoneyManager;
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
@@ -90,6 +91,9 @@ public class ClaimCommand implements CommandExecutor {
             }
             if (claimManager.createClaim(null, clan.getId(), points[0], points[1]) != null) {
                 player.sendMessage(ChatColor.GREEN + "Klan claimi başarıyla oluşturuldu! (" + area + " blok)");
+
+                Location center = points[0].clone().add(points[1]).multiply(0.5);
+                ClanUtils.updateLocationVisual(clan, center, "Bölgesi");
             } else {
                 player.sendMessage(ChatColor.RED + "Bu alan başka bir claim ile çakışıyor!");
                 clan.addBalance(cost); // Refund

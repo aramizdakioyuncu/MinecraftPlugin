@@ -88,7 +88,7 @@ public final class minecraftplugin extends JavaPlugin {
 
                 // SetHome
                 HomeManager homeManager = new HomeManager();
-                getCommand("home").setExecutor(new HomeCommand(actionManager, homeManager, this));
+                getCommand("home").setExecutor(new HomeCommand(actionManager, homeManager, moneyManager, this));
                 getServer().getPluginManager().registerEvents(new HomeListener(homeManager), this);
 
                 // Trader System
@@ -103,7 +103,8 @@ public final class minecraftplugin extends JavaPlugin {
                 ClanVaultGUI vaultGUI = new ClanVaultGUI(clanManager);
 
                 // Claim System
-                ClaimManager claimManager = new ClaimManager(this);
+                ClaimManager claimManager = new ClaimManager(this, clanManager);
+                clanManager.setClaimManager(claimManager); // Inject for cleanup
                 ClaimListener claimListener = new ClaimListener(claimManager, clanManager);
 
                 getCommand("klan").setExecutor(

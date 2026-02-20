@@ -10,4 +10,8 @@ spawnpoints: []
 # Economy Settings
 economy:
   starting_balance: 100.0
+  teleport_costs:
+    home: 50.0
+    spawn: 100.0
+    land_spawn: 150.0
   balances: {}

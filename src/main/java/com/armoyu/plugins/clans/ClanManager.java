@@ -17,11 +17,16 @@ public class ClanManager {
     private final Map<UUID, UUID> playerClanMap = new HashMap<>(); // Player UUID -> Clan UUID
     private final File file;
     private final FileConfiguration config;
+    private com.armoyu.plugins.claims.ClaimManager claimManager;
 
     public ClanManager(JavaPlugin plugin) {
         this.file = new File(plugin.getDataFolder(), "clans.yml");
         this.config = YamlConfiguration.loadConfiguration(file);
         loadClans();
+    }
+
+    public void setClaimManager(com.armoyu.plugins.claims.ClaimManager claimManager) {
+        this.claimManager = claimManager;
     }
 
     public Clan createClan(Player leader, String name, String tag) {
@@ -64,6 +69,9 @@ public class ClanManager {
             playerClanMap.remove(player.getUniqueId());
             if (clan.getMembers().isEmpty()) {
                 clans.remove(clan.getId());
+                if (claimManager != null) {
+                    claimManager.deleteClaimsByClan(clan.getId());
+                }
             } else if (clan.getLeader().equals(player.getUniqueId())) {
                 // Lider ayrılırsa rastgele birine devret (veya klanı sil)
                 UUID nextLeader = clan.getMembers().iterator().next();
@@ -78,6 +86,9 @@ public class ClanManager {
             playerClanMap.remove(member);
         }
         clans.remove(clan.getId());
+        if (claimManager != null) {
+            claimManager.deleteClaimsByClan(clan.getId());
+        }
         saveClans();
     }
 
@@ -106,6 +117,11 @@ public class ClanManager {
             config.set(path + ".vault", clan.getVault());
             config.set(path + ".castleName", clan.getCastleName());
             config.set(path + ".castleType", clan.getCastleType());
+
+            // Save Land Spawns
+            for (Map.Entry<UUID, Location> entry : clan.getLandSpawns().entrySet()) {
+                config.set(path + ".landspawns." + entry.getKey().toString(), entry.getValue());
+            }
         }
         try {
             config.save(file);
@@ -140,6 +156,15 @@ public class ClanManager {
             }
             clan.setCastleName(config.getString(path + ".castleName"));
             clan.setCastleType(config.getString(path + ".castleType"));
+
+            // Load Land Spawns
+            if (config.contains(path + ".landspawns")) {
+                for (String landKey : config.getConfigurationSection(path + ".landspawns").getKeys(false)) {
+                    UUID landId = UUID.fromString(landKey);
+                    Location landLoc = config.getLocation(path + ".landspawns." + landKey);
+                    clan.setLandSpawn(landId, landLoc);
+                }
+            }
 
             for (String m : memberStrings) {
                 UUID memberId = UUID.fromString(m);

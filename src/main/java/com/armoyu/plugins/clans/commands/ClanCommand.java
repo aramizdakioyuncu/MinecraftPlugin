@@ -2,6 +2,7 @@ package com.armoyu.plugins.clans.commands;
 
 import com.armoyu.plugins.clans.Clan;
 import com.armoyu.plugins.clans.ClanManager;
+import com.armoyu.plugins.clans.ClanUtils;
 import com.armoyu.plugins.clans.ClanListener;
 import com.armoyu.plugins.clans.ClanVaultGUI;
 import com.armoyu.plugins.economy.MoneyManager;
@@ -73,10 +74,10 @@ public class ClanCommand implements CommandExecutor {
                 handleProfile(player, args);
                 break;
             case "setspawn":
-                handleSetSpawn(player);
+                handleSetSpawn(player, args);
                 break;
             case "spawn":
-                handleSpawn(player);
+                handleSpawn(player, args);
                 break;
             case "banka":
             case "kasa":
@@ -268,51 +269,68 @@ public class ClanCommand implements CommandExecutor {
         player.sendMessage(ChatColor.GOLD + "======================");
     }
 
-    private void handleSetSpawn(Player player) {
+    private void handleSetSpawn(Player player, String[] args) {
         com.armoyu.plugins.clans.Clan clan = clanManager.getClanByPlayer(player.getUniqueId());
         if (clan == null || !clan.getLeader().equals(player.getUniqueId())) {
             player.sendMessage(ChatColor.RED + "Sadece klan lideri spawn noktası belirleyebilir.");
             return;
         }
 
-        clan.setSpawn(player.getLocation());
-        clanManager.saveClans();
-        updateSpawnVisual(clan);
-        player.sendMessage(ChatColor.GREEN + "Klan spawn noktası başarıyla ayarlandı!");
-    }
-
-    private void updateSpawnVisual(com.armoyu.plugins.clans.Clan clan) {
-        if (clan.getSpawn() == null)
+        com.armoyu.plugins.claims.Claim claim = claimManager.getClaimAt(player.getLocation());
+        if (claim == null || claim.getOwnerClan() == null || !claim.getOwnerClan().equals(clan.getId())) {
+            player.sendMessage(
+                    ChatColor.RED + "Burada size ait bir klan claimi yok! Spawn sadece klan arsasında ayarlanabilir.");
             return;
+        }
 
-        org.bukkit.Location loc = clan.getSpawn().clone().add(0, 2.0, 0); // Biraz daha yüksek yapalım
-
-        // Remove existing armor stands nearby
-        loc.getWorld().getNearbyEntities(loc, 2, 3, 2).stream()
-                .filter(e -> e instanceof org.bukkit.entity.ArmorStand)
-                .filter(e -> e.getCustomName() != null && e.getCustomName().contains("Merkezi"))
-                .forEach(org.bukkit.entity.Entity::remove);
-
-        org.bukkit.entity.ArmorStand as = loc.getWorld().spawn(loc, org.bukkit.entity.ArmorStand.class);
-        as.setVisible(false);
-        as.setGravity(false);
-        as.setBasePlate(false);
-        as.setArms(false);
-        as.setSmall(true);
-        as.setCustomName(ChatColor.GOLD + "[" + ChatColor.YELLOW + clan.getName() + " Merkezi" + ChatColor.GOLD + "]");
-        as.setCustomNameVisible(true);
-        as.setMarker(true);
+        if (args.length > 1 && args[1].equalsIgnoreCase("arsa")) {
+            clan.setLandSpawn(claim.getId(), player.getLocation());
+            clanManager.saveClans();
+            ClanUtils.updateLocationVisual(clan, player.getLocation(), "Arsa Spawn");
+            player.sendMessage(ChatColor.GREEN + "Bu arsa için klan ışınlanma noktası başarıyla ayarlandı!");
+        } else {
+            clan.setSpawn(player.getLocation());
+            clanManager.saveClans();
+            ClanUtils.updateLocationVisual(clan, clan.getSpawn(), "Merkezi");
+            player.sendMessage(ChatColor.GREEN + "Ana klan spawn noktası başarıyla ayarlandı!");
+        }
     }
 
-    private void handleSpawn(Player player) {
-        Clan clan = clanManager.getClanByPlayer(player.getUniqueId());
+    // Exposing this for other classes if needed, though ClanUtils is preferred
+    public void updateSpawnVisual(com.armoyu.plugins.clans.Clan clan) {
+        ClanUtils.updateLocationVisual(clan, clan.getSpawn(), "Merkezi");
+    }
+
+    private void handleSpawn(Player player, String[] args) {
+        com.armoyu.plugins.clans.Clan clan = clanManager.getClanByPlayer(player.getUniqueId());
         if (clan == null) {
             player.sendMessage(ChatColor.RED + "Bir klanda değilsiniz.");
             return;
         }
 
-        if (clan.getSpawn() == null) {
-            player.sendMessage(ChatColor.RED + "Klan spawn noktası henüz ayarlanmamış.");
+        org.bukkit.Location targetLoc = clan.getSpawn();
+        String targetName = "Merkezi";
+
+        if (args.length > 1) {
+            try {
+                int landIdx = Integer.parseInt(args[1]) - 1;
+                java.util.List<com.armoyu.plugins.claims.Claim> claims = claimManager.getClaimsByClan(clan.getId());
+                if (landIdx >= 0 && landIdx < claims.size()) {
+                    com.armoyu.plugins.claims.Claim claim = claims.get(landIdx);
+                    targetLoc = clan.getLandSpawn(claim.getId());
+                    if (targetLoc == null) {
+                        targetLoc = new org.bukkit.Location(player.getWorld(),
+                                (claim.getMinX() + claim.getMaxX()) / 2.0, player.getLocation().getY(),
+                                (claim.getMinZ() + claim.getMaxZ()) / 2.0);
+                    }
+                    targetName = "Arsası (" + (landIdx + 1) + ")";
+                }
+            } catch (NumberFormatException ignored) {
+            }
+        }
+
+        if (targetLoc == null) {
+            player.sendMessage(ChatColor.RED + "Klan spawn noktası belirlenmemiş!");
             return;
         }
 
@@ -321,10 +339,27 @@ public class ClanCommand implements CommandExecutor {
             return;
         }
 
+        double cost = com.armoyu.minecraftplugin.getPlugin(com.armoyu.minecraftplugin.class).getConfig()
+                .getDouble("economy.teleport_costs." + (targetName.equals("Merkezi") ? "spawn" : "land_spawn"),
+                        targetName.equals("Merkezi") ? 100.0 : 150.0);
+
+        if (!moneyManager.hasEnough(player.getUniqueId(), cost)) {
+            player.sendMessage(
+                    ChatColor.RED + "Bu klan noktasına ışınlanmak için yeterli paranız yok! Gerekli: " + cost);
+            return;
+        }
+
+        player.sendMessage(ChatColor.YELLOW + "Klan " + targetName + " gidiliyor... Ücret: " + cost + ". "
+                + getSpawnCooldown(clan.getLevel()) + " saniye hareket etmeyin.");
+        moneyManager.removeMoney(player.getUniqueId(), cost);
+
         int cooldown = getSpawnCooldown(clan.getLevel());
+        final org.bukkit.Location finalLoc = targetLoc;
+        final String finalName = targetName;
+
         if (cooldown > 0) {
             player.sendMessage(
-                    ChatColor.YELLOW + "Klan merkezine gidiliyor... " + cooldown + " saniye hareket etmeyin.");
+                    ChatColor.YELLOW + "Klan " + finalName + " gidiliyor... " + cooldown + " saniye hareket etmeyin.");
 
             BukkitRunnable runnable = new BukkitRunnable() {
                 int seconds = cooldown;
@@ -340,8 +375,8 @@ public class ClanCommand implements CommandExecutor {
                         player.sendTitle(ChatColor.BLUE + String.valueOf(seconds), "", 0, 20, 0);
                         seconds--;
                     } else {
-                        player.teleport(clan.getSpawn());
-                        player.sendMessage(ChatColor.GREEN + "Klan merkezine ışınlandınız.");
+                        player.teleport(finalLoc);
+                        player.sendMessage(ChatColor.GREEN + "Klan " + finalName + " ışınlandınız.");
                         teleportManager.removeTask(player);
                         this.cancel();
                     }
@@ -353,8 +388,8 @@ public class ClanCommand implements CommandExecutor {
                     .getTaskId();
             teleportManager.addTask(player, taskId);
         } else {
-            player.teleport(clan.getSpawn());
-            player.sendMessage(ChatColor.GREEN + "Klan merkezine ışınlandınız.");
+            player.teleport(finalLoc);
+            player.sendMessage(ChatColor.GREEN + "Klan " + finalName + " ışınlandınız.");
         }
     }
 

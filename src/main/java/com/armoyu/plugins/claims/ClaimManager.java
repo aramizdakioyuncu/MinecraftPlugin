@@ -14,10 +14,12 @@ public class ClaimManager {
     private final Map<UUID, Location[]> selections = new HashMap<>(); // UUID -> [Point A, Point B]
     private final File file;
     private final FileConfiguration config;
+    private final com.armoyu.plugins.clans.ClanManager clanManager;
 
-    public ClaimManager(JavaPlugin plugin) {
+    public ClaimManager(JavaPlugin plugin, com.armoyu.plugins.clans.ClanManager clanManager) {
         this.file = new File(plugin.getDataFolder(), "claims.yml");
         this.config = YamlConfiguration.loadConfiguration(file);
+        this.clanManager = clanManager;
         loadClaims();
     }
 
@@ -91,6 +93,11 @@ public class ClaimManager {
         saveClaims();
     }
 
+    public void deleteClaimsByClan(UUID clanId) {
+        claims.removeIf(c -> clanId.equals(c.getOwnerClan()));
+        saveClaims();
+    }
+
     public void saveClaims() {
         config.set("claims", null);
         for (int i = 0; i < claims.size(); i++) {
@@ -128,6 +135,11 @@ public class ClaimManager {
 
             UUID pId = (ownerP != null) ? UUID.fromString(ownerP) : null;
             UUID cId = (ownerC != null) ? UUID.fromString(ownerC) : null;
+
+            // Startup Integrity Check: If klan claim and klan doesn't exist, skip/remove
+            if (cId != null && clanManager != null && clanManager.getClan(cId) == null) {
+                continue;
+            }
 
             Claim c = new Claim(pId, cId, world, minX, maxX, minZ, maxZ);
             for (String t : trusted) {

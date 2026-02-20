@@ -14,12 +14,14 @@ public class HomeCommand implements CommandExecutor {
 
     private final com.armoyu.plugins.actionmanager.ActionManager actionManager;
     private final HomeManager homeManager;
+    private final com.armoyu.plugins.economy.MoneyManager moneyManager;
     private final JavaPlugin plugin;
 
     public HomeCommand(com.armoyu.plugins.actionmanager.ActionManager actionManager, HomeManager homeManager,
-            JavaPlugin plugin) {
+            com.armoyu.plugins.economy.MoneyManager moneyManager, JavaPlugin plugin) {
         this.actionManager = actionManager;
         this.homeManager = homeManager;
+        this.moneyManager = moneyManager;
         this.plugin = plugin;
     }
 
@@ -54,7 +56,14 @@ public class HomeCommand implements CommandExecutor {
             return true;
         }
 
-        player.sendMessage(ChatColor.GREEN + "5 saniye içinde ışınlanacaksınız. Lütfen hareket etmeyin.");
+        double cost = plugin.getConfig().getDouble("economy.teleport_costs.home", 50.0);
+        if (!moneyManager.hasEnough(player.getUniqueId(), cost)) {
+            player.sendMessage(ChatColor.RED + "Evinize ışınlanmak için yeterli paranız yok! Gerekli: " + cost);
+            return true;
+        }
+
+        player.sendMessage(ChatColor.GREEN + "Evinize gidiliyor... Ücret: " + cost + ". 5 saniye hareket etmeyin.");
+        moneyManager.removeMoney(player.getUniqueId(), cost);
 
         // DÜZELTME: BukkitRunnable'ı değişkene atayıp task ID'sini alacağız.
         BukkitRunnable runnable = new BukkitRunnable() {

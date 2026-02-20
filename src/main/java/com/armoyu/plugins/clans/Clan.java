@@ -19,6 +19,7 @@ public class Clan {
     private List<ItemStack> vault = new ArrayList<>();
     private String castleName;
     private String castleType;
+    private final Map<UUID, Location> landSpawns = new HashMap<>();
 
     public void setId(UUID id) {
         this.id = id;
@@ -166,5 +167,17 @@ public class Clan {
 
     public void setCastleType(String castleType) {
         this.castleType = castleType;
+    }
+
+    public Map<UUID, Location> getLandSpawns() {
+        return landSpawns;
+    }
+
+    public void setLandSpawn(UUID landId, Location loc) {
+        landSpawns.put(landId, loc);
+    }
+
+    public Location getLandSpawn(UUID landId) {
+        return landSpawns.get(landId);
     }
 }

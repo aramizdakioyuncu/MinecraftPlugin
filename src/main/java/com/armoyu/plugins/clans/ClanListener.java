@@ -7,6 +7,7 @@ import org.bukkit.event.EventPriority;
 import org.bukkit.event.Listener;
 import org.bukkit.event.player.AsyncPlayerChatEvent;
 import org.bukkit.event.player.PlayerJoinEvent;
+import org.bukkit.event.entity.EntityDamageByEntityEvent;
 
 public class ClanListener implements Listener {
 
@@ -32,6 +33,24 @@ public class ClanListener implements Listener {
     @EventHandler
     public void onJoin(PlayerJoinEvent event) {
         updateTabName(event.getPlayer());
+    }
+
+    @EventHandler
+    public void onDamage(EntityDamageByEntityEvent event) {
+        if (!(event.getDamager() instanceof Player) || !(event.getEntity() instanceof Player)) {
+            return;
+        }
+
+        Player damager = (Player) event.getDamager();
+        Player victim = (Player) event.getEntity();
+
+        Clan damagerClan = clanManager.getClanByPlayer(damager.getUniqueId());
+        Clan victimClan = clanManager.getClanByPlayer(victim.getUniqueId());
+
+        if (damagerClan != null && victimClan != null && damagerClan.getId().equals(victimClan.getId())) {
+            event.setCancelled(true);
+            damager.sendMessage(ChatColor.RED + "Klan arkadaşlarınıza hasar veremezsiniz!");
+        }
     }
 
     public void updateTabName(Player player) {
