@@ -1,0 +1,13 @@
+# ARMOYU Minecraft Plugin Configuration
+
+# RCON Admin Settings
+rcon: true
+rconpassword: "secretrconkey"
+
+# Spawn Points (Stored as stringified locations or list of maps)
+spawnpoints: []
+
+# Economy Settings
+economy:
+  starting_balance: 100.0
+  balances: {}

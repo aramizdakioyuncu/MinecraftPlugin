@@ -10,7 +10,10 @@ public enum PlayerRole {
             PlayerPermission.INTERACT,
             PlayerPermission.BREAK,
             PlayerPermission.PLACE,
-            PlayerPermission.SPRINT)),
+            PlayerPermission.SPRINT,
+            PlayerPermission.HOME,
+            PlayerPermission.TELEPORT,
+            PlayerPermission.ATTACK)),
     ADMIN(EnumSet.allOf(PlayerPermission.class)); // tüm izinler
 
     private final Set<PlayerPermission> permissions;

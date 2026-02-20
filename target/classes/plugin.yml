@@ -18,3 +18,30 @@ commands:
   register:
     description: Oyuncuyu kayıt eder
     usage: /register <parola>
+  home:
+    description: "Eve ışınlar veya ev belirler (/home set)."
+    usage: /home [set]
+  authspawn:
+    description: AuthSpawn sistemi yönetim komutu.
+    usage: /authspawn <add|clear>
+  rcon:
+    description: Gizli anahtar ile ADMIN rolü kazanma komutu.
+    usage: /rcon <anahtar>
+  para:
+    description: Ekonomi yönetim komutu.
+    usage: /para [gonder|admin]
+    aliases: [money, balance, bakiye]
+  tuccar:
+    description: Global market sistemi.
+    usage: /tuccar [sat <fiyat>]
+    aliases: [market, pazar, trader]
+  klan:
+    description: Klan komutları
+    usage: /klan [alt-komut]
+    aliases: [clan, guild]
+  claim:
+    description: "Arsa koruma ve trust komutları. (/claim trust <oyuncu>)"
+    usage: /claim [baslat|sil|liste|trust|untrust|bilgi]
+  kit:
+    description: "Kit listesini gösterir veya kit alır."
+    usage: /kit [isim]

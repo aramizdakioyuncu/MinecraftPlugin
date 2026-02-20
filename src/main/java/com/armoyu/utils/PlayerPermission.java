@@ -7,5 +7,8 @@ public enum PlayerPermission {
     BREAK,
     PLACE,
     FLY,
-    SPRINT
+    SPRINT,
+    HOME,
+    TELEPORT,
+    AUTHSPAWN
 }

@@ -14,7 +14,6 @@ import org.bukkit.event.block.BlockBreakEvent;
 import org.bukkit.event.block.BlockPlaceEvent;
 import org.bukkit.event.entity.EntityDamageByEntityEvent;
 import org.bukkit.event.entity.EntityDamageEvent;
-import org.bukkit.plugin.java.JavaPlugin;
 
 import com.armoyu.utils.PlayerPermission;
 import com.armoyu.utils.PlayerRole;
@@ -24,11 +23,9 @@ import java.util.Map;
 
 public class ActionManager implements Listener {
 
-    private final JavaPlugin plugin;
     private final Map<Player, PlayerRole> playerRoles = new HashMap<>();
 
-    public ActionManager(JavaPlugin plugin) {
-        this.plugin = plugin;
+    public ActionManager() {
     }
 
     // Oyuncu girişinde guest rolü atanır
@@ -142,8 +139,13 @@ public class ActionManager implements Listener {
         playerRoles.put(player, role);
     }
 
+    // Rolü getir
+    public PlayerRole getRole(Player player) {
+        return playerRoles.get(player);
+    }
+
     // İzin kontrolü
-    private boolean hasPermission(Player player, PlayerPermission permission) {
+    public boolean hasPermission(Player player, PlayerPermission permission) {
         PlayerRole role = playerRoles.get(player);
         if (role == null)
             return false; // default guest gibi davran
